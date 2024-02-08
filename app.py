@@ -45,7 +45,7 @@ for pos in posList:
     x,y = pos[0]
     imgCrop = img[y:y + circle_height, x:x + circle_width]
     count = cv2.countNonZero(imgCrop)
-    if(count < 500):
+    if(count < sens):
         arr.append(pos[1])  
         
 print(arr)
