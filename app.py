@@ -1,3 +1,4 @@
+from typing import Any
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -8,31 +9,61 @@ path = "template/"
 pickle_name = 'exam1'
 position_path = './pickle/'
 circle_width, circle_height = 25,25
-img = cv2.imread('Ideal.JPEG', 0)
+img = cv2.imread('testcase_2.JPEG', 0)
 img = cv2.resize(img, (1700, 2250), interpolation = cv2.INTER_LINEAR)
 sens = 500
 
-# structure = [
-#     ["part0", [8,10,0]], # 0-79 
-#     ["part1", [50,5,1]], # 80 - 129
-#     ["part2", [10,6,0]], # 
-# ]
+class UserAns:
+    def __init__(self):
+        self.id = [None]*8
+        self.answer = {1:{k:None for k in range(1, 51)}, 2:{k:[None for i in range(6)] for k in range(1, 11)}}
 
-# def to_ans(structure,ans):
-#     for i in structure:
-#         if(ans > (i[1][0]*i[1][1])-1):
-#             ans = ans - (i[1][0]*i[1][1] )
-#             print("has con")
-#             continue
-            
-#         else:
-#             for j in range(1,i[1][0]): # 1-8
-#                 for k in range(i[1][2],i[1][1]):
-#                     if ((j-1)*i[1][1])+k == ans+i[1][2]:
-#                         return [i[0],j,k]
-#             print("not found")
+    def getId(self):
+        return self.id
 
-# print(to_ans(structure,78))
+    def getAnswer(self):
+        return self.answer
+
+def formatToUserAns(arr):
+    arr.append(9999999)
+    user = UserAns()
+    
+    #read user.id
+    currentIdx = 0
+    while arr[currentIdx] <= 79:
+        user.getId()[arr[currentIdx]//10] = arr[currentIdx]%10
+        currentIdx += 1
+    
+    prev = -1
+
+    #read part1 (multiple choice)
+    while arr[currentIdx] <= 329:
+        current = (arr[currentIdx] - 80)//5+1
+        if prev >= current:
+            user.getAnswer()[1][current] = "INVALID"
+        else:
+            user.getAnswer()[1][current] = (arr[currentIdx] - 80)%5 + 1
+        prev = current
+        currentIdx += 1
+
+    offset = 330
+
+    while arr[currentIdx] <= 929:
+        current = (arr[currentIdx] - offset)//60+1
+        limit = 60*current
+        # user.getAnswer()[2][current] = [None]*6
+        errorFlag = False
+        while arr[currentIdx] - offset < limit:
+            field = ((arr[currentIdx] - offset)//10)%6
+            if user.getAnswer()[2][current][field] != None:
+                errorFlag = True
+            user.getAnswer()[2][current][field] = (arr[currentIdx] - offset)%10
+            currentIdx += 1
+        if errorFlag:
+            user.getAnswer()[2][current] = "INVALID"
+
+    return user
+
 
 def get_file(position_path):
     with open(position_path, 'rb') as f:
@@ -47,6 +78,8 @@ for pos in posList:
     count = cv2.countNonZero(imgCrop)
     if(count < sens):
         arr.append(pos[1])  
-        
-print(arr)
+
+# for key, value in formatToUserAns(arr).getAnswer()[1].items():
+#     print("{}: {}".format(key, value))
+print(formatToUserAns(arr).getAnswer()[2])
 
