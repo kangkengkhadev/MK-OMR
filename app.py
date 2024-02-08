@@ -6,12 +6,15 @@ from os import walk
 import pickle
 
 path = "template/"
-pickle_name = 'exam1'
+pickle_name = 'exam2'
 position_path = './pickle/'
 circle_width, circle_height = 25,25
-img = cv2.imread('testcase_2.JPEG', 0)
-img = cv2.resize(img, (1700, 2250), interpolation = cv2.INTER_LINEAR)
-sens = 500
+img = cv2.imread('test.jpg', cv2.IMREAD_GRAYSCALE)
+im_gray = cv2.resize(img, (1700, 2250), interpolation = cv2.INTER_LINEAR)
+(thresh, im_bw) = cv2.threshold(im_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+thresh = 200
+img = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+sens = 200
 
 class UserAns:
     def __init__(self):
@@ -64,22 +67,30 @@ def formatToUserAns(arr):
 
     return user
 
-
 def get_file(position_path):
     with open(position_path, 'rb') as f:
         posList = pickle.load(f)
     return posList
 
 arr = []
+
 posList = get_file(position_path+pickle_name)
 for pos in posList:
     x,y = pos[0]
     imgCrop = img[y:y + circle_height, x:x + circle_width]
     count = cv2.countNonZero(imgCrop)
+    print(count)
     if(count < sens):
         arr.append(pos[1])  
 
+print(arr)
+# user = formatToUserAns(arr)
+# #user_id
+# print(user.getId())
+# #multiple choice
 # for key, value in formatToUserAns(arr).getAnswer()[1].items():
 #     print("{}: {}".format(key, value))
-print(formatToUserAns(arr).getAnswer()[2])
+# #filled
+# for key, values in formatToUserAns(arr).getAnswer()[2].items():
+#     print("{}: {}".format(key, values))
 

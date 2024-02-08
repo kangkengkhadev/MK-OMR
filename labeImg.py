@@ -6,11 +6,15 @@ import numpy as np
 
 #define 
 circle_width, circle_height = 25,25
-pickle_name = 'exam1'
+pickle_name = 'exam2'
 position_path = './pickle/'
 global img
-img = cv2.imread('Ideal.JPEG', 0)
-img = cv2.resize(img, (1700, 2250), interpolation = cv2.INTER_LINEAR)
+img = cv2.imread('test.jpg', 0)
+img = cv2.imread('test.jpg', cv2.IMREAD_GRAYSCALE)
+im_gray = cv2.resize(img, (1700, 2250), interpolation = cv2.INTER_LINEAR)
+(thresh, im_bw) = cv2.threshold(im_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+thresh = 200
+img = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)[1]
 
 #debug
 try:
