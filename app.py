@@ -93,4 +93,3 @@ print(arr)
 # #filled
 # for key, values in formatToUserAns(arr).getAnswer()[2].items():
 #     print("{}: {}".format(key, values))
-
