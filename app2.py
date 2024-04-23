@@ -13,8 +13,8 @@ default_rect_space = 200000
 org_image = cv2.imread(name)
 org_image = cv2.resize(org_image, (1000, 1250), interpolation = cv2.INTER_LINEAR)
 gray = cv2.cvtColor(org_image , cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-edges = cv2.Canny(blurred, 20, 150)
+blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+edges = cv2.Canny(blurred, 120, 255, 1)
 contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 cropped_rectangles = []
 
@@ -100,10 +100,31 @@ def score_info_index(score_paper: ScorePaper, index: int):
 
 if(len(cropped_rectangles) != 2):
     print(len(cropped_rectangles))
+    print("Error while cropping please try again or evaluate by yourself")
+    main_sec_obj = MyPickle(main_sec_pickle)
+    main_sec_image = cropped_rectangles[0] 
+    main_sec_image = cv2.resize(main_sec_image,main_sec_obj.wh)
+    img_for_detect = cv2.cvtColor(main_sec_image, cv2.COLOR_BGR2GRAY)
+    img_for_detect_gray = cv2.resize(img_for_detect, (main_sec_obj.height, main_sec_obj.width), interpolation = cv2.INTER_LINEAR)
+    (thresh, im_bw) = cv2.threshold(img_for_detect_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    thresh = 200
+    main_sec_image = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+    score_paper = ScorePaper()
+    # omr for main
+    main_sec_detect = []
+    for pos in  main_sec_obj.get_file():
+        x,y = pos[0]
+        imgCrop = main_sec_image[y:y + main_sec_obj.rect_range, x:x + main_sec_obj.rect_range]
+        count = cv2.countNonZero(imgCrop)
+        cv2.rectangle(main_sec_image, (x, y), (x + main_sec_obj.rect_range, y + main_sec_obj.rect_range), (0, 255, 0), 2)
+        if(count < sens):
+            score_info_index(score_paper, pos[1])
+            main_sec_detect.append(pos[1]) 
+    print(main_sec_detect)
+    # cv2.imshow("Main Section Image", main_sec_image)
     cv2.imshow("Cropped Rectangle",cropped_rectangles[0])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    print("Error while cropping please try again or evaluate by yourself")
 else:
     # set name and main
     idx_max = 0
