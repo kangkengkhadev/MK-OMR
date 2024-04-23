@@ -59,7 +59,8 @@ while True:
     cvzone.putTextRect(img, f'Idx:{idx}', (100, 50), scale=2,
                            thickness=1, offset=20, colorR=(0,200,0))
     cv2.putText(img, 'Undo',(140,120),cv2.FONT_HERSHEY_PLAIN, 2,(0),3)
-    k=cv2.waitKey(1) & 0xFF
     cv2.imshow("Image", img)
     cv2.setMouseCallback("Image", mouseClick,idx)
-    cv2.waitKey(1) 
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+cv2.destroyAllWindows()
