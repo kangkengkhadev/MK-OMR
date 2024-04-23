@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pickle
 
-name = "Test_page-0001.jpg"
+name = "Test_page-0003.jpg"
 main_sec_pickle = "pickle_label/rect1_1250_1000_15_15"
 name_sec_pickle = "pickle_label/rect2_250_1000_15_15"
 default_rect_space = 200000
@@ -192,7 +192,5 @@ else:
     print("Cancle this paper:", score_paper.get_cancle())
     print("====== Student Choice ======")
     print("Choice:")
-    for i in range(0, len(score_paper.get_choice())):
-        print("Q", i+1, ":", score_paper.get_choice()[i])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
