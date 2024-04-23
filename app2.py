@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pickle
 
-name = "mark.jpg"
+name = "Test_page-0001.jpg"
 main_sec_pickle = "pickle_label/rect1_1250_1000_15_15"
 name_sec_pickle = "pickle_label/rect2_250_1000_15_15"
 default_rect_space = 200000
@@ -24,7 +24,7 @@ img_for_detect_gray = cv2.resize(img_for_detect, (1000, 1250), interpolation = c
 (thresh, im_bw) = cv2.threshold(img_for_detect_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 thresh = 200
 img_for_detect = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
-sens = 50
+sens = 40
 
 # find rectangles
 for contour in contours:
@@ -51,14 +51,52 @@ class MyPickle:
         with open(self.filename, 'rb') as f:
             posList = pickle.load(f)
         return posList
-    
-# for i, rectangle in enumerate(cropped_rectangles):
-#     cv2.imshow(f"Cropped Rectangle {i+1}", rectangle)
 
-# print(len(cropped_rectangles))
+class ScorePaper:
+    def __init__(self):
+        self.seat_no = ['X', 'X']
+        self.id = ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X']
+        self.cancle = False
+        self.choice = [""] * 60
 
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+    def get_seat_no(self):
+        return self.seat_no
+
+    def set_seat_no(self, index):
+        self.seat_no[index // 10] = str(index % 10)
+
+    def get_id(self):
+        return self.id
+
+    def set_id(self, index):
+        index -= 20;
+        self.id[index // 10] = str(index % 10)
+
+    def get_cancle(self):
+        return self.cancle
+
+    def set_cancel(self, flag):
+        self.cancle = flag;
+
+    def get_choice(self):
+        return self.choice
+
+    def set_choice(self, index):
+        if 0 <= index <= 249:
+            self.choice[index // 5] += str(index % 5 + 1)
+        elif 250 <= index <= 849:
+            self.choice[index // 60] += str(index % 10)
+
+def student_info_index(score_paper: ScorePaper, index: int):
+    if 0 <= index <= 19:
+        score_paper.set_seat_no(index)
+    elif 20 <= index <= 99:
+        score_paper.set_id(index)
+    elif index == 100:
+        score_paper.set_cancel(True)
+
+def score_info_index(score_paper: ScorePaper, index: int):
+        score_paper.set_choice(index)
 
 if(len(cropped_rectangles) != 2):
     print(len(cropped_rectangles))
@@ -99,6 +137,8 @@ else:
     thresh = 200
     name_sec_image = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
 
+    score_paper = ScorePaper()
+
     # omr for main
     main_sec_detect = []
     for pos in  main_sec_obj.get_file():
@@ -107,6 +147,7 @@ else:
         count = cv2.countNonZero(imgCrop)
         cv2.rectangle(main_sec_image, (x, y), (x + main_sec_obj.rect_range, y + main_sec_obj.rect_range), (0, 255, 0), 2)
         if(count < sens):
+            score_info_index(score_paper, pos[1])
             main_sec_detect.append(pos[1]) 
 
     # omr for name
@@ -117,11 +158,20 @@ else:
         count = cv2.countNonZero(imgCrop)
         cv2.rectangle(name_sec_image, (x, y), (x + name_sec_obj.rect_range, y + name_sec_obj.rect_range), (0, 255, 0), 2)
         if(count < sens):
+            student_info_index(score_paper, pos[1])
             name_sec_detect.append(pos[1]) 
     
     
     cv2.imshow("Main Section Image", main_sec_image)
     cv2.imshow("Name Section Image", name_sec_image)
     print(main_sec_detect,name_sec_detect)
+    print("====== Student Info ======")
+    print("Seat No.:", "".join(score_paper.get_seat_no()))
+    print("ID:", "".join(score_paper.get_id()))
+    print("Cancle this paper:", score_paper.get_cancle())
+    print("====== Student Choice ======")
+    print("Choice:")
+    for i in range(0, len(score_paper.get_choice())):
+        print("Q", i+1, ":", score_paper.get_choice()[i])
     cv2.waitKey(0)
     cv2.destroyAllWindows()

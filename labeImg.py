@@ -7,10 +7,10 @@ import numpy as np
 
 #define 
 circle_width, circle_height = 15,15
-size = (1000, 250) # (1000, 250) or (1000, 1250)
+size = (1000, 1250) # (1000, 250) or (1000, 1250)
 position_path = './pickle_label/'
-image_name = "mock_images/rectangle_2.png"
-startname = "rect2_"
+image_name = "mock_images/rectangle_1.png"
+startname = "rect1_"
 
 
 global img
@@ -46,6 +46,10 @@ def mouseClick(events, x, y, flags, params):
                            thickness=2, offset=20, colorR=(0,200,0))
             cv2.putText(img, 'Undo',(140,120),cv2.FONT_HERSHEY_PLAIN, 2,(0),3)
         else: 
+            temp = []
+            with open(position_path+pickle_name, 'rb') as f:
+                temp = pickle.load(f)
+            temp = temp[-60:]
             posList.append([(x, y),params])
         with open(position_path+pickle_name, 'wb') as f:
             pickle.dump(posList, f)
