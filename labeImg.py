@@ -46,10 +46,15 @@ def mouseClick(events, x, y, flags, params):
                            thickness=1, offset=20, colorR=(0,200,0))
             cv2.putText(img, 'Undo',(140,120),cv2.FONT_HERSHEY_PLAIN, 2,(0),3)
         else: 
-            temp = []
-            with open(position_path+pickle_name, 'rb') as f:
-                temp = pickle.load(f)
-            temp = temp[-60:]
+            # temp = []
+            # with open(position_path+pickle_name, 'rb') as f:
+            #     temp = pickle.load(f)
+            # temp = temp[-60:]
+            # delta_x = x - temp[0][0][0];
+            # delta_y = y - temp[0][0][1];
+            # for e in temp:
+            #     cord, params = e
+            #     posList.append([(cord[0] + delta_x, cord[1] + delta_y), params])
             posList.append([(x, y),params])
         with open(position_path+pickle_name, 'wb') as f:
             pickle.dump(posList, f)
