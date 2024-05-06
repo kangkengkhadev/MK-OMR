@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pickle
 
-name = "Test_page-0001.jpg"
+name = "Test_page-0002.jpg"
 main_sec_pickle = "pickle_label/rect1_1250_1000_15_15"
 name_sec_pickle = "pickle_label/rect2_250_1000_15_15"
 default_rect_space = 200000
@@ -12,31 +12,50 @@ default_rect_space = 200000
 # transform imahe for rectangle
 org_image = cv2.imread(name)
 org_image = cv2.resize(org_image, (1000, 1250), interpolation = cv2.INTER_LINEAR)
+result = org_image.copy()
 gray = cv2.cvtColor(org_image , cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-edges = cv2.Canny(blurred, 120, 255, 1)
-contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,51,9)
+cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+for c in cnts:
+    cv2.drawContours(thresh, [c], -1, (255,255,255), -1)
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
+opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=4)
+# blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+# edges = cv2.Canny(blurred, 120, 255, 1)
+# contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 cropped_rectangles = []
 
 # tansform for omr
 img_for_detect = cv2.imread(name, cv2.IMREAD_GRAYSCALE)
 img_for_detect_gray = cv2.resize(img_for_detect, (1000, 1250), interpolation = cv2.INTER_LINEAR)
 (thresh, im_bw) = cv2.threshold(img_for_detect_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-thresh = 200
+thresh = 0
 img_for_detect = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
 sens = 40
 
-# find rectangles
-for contour in contours:
-    peri = cv2.arcLength(contour, True)
-    approx = cv2.approxPolyDP(contour, 0.03 * peri, True)
-    if len(approx) == 4:
-        x, y, w, h = cv2.boundingRect(approx)
+# # find rectangles
+# for contour in contours:
+#     peri = cv2.arcLength(contour, True)
+#     approx = cv2.approxPolyDP(contour, 0.03 * peri, True)
+#     if len(approx) == 4:
+#         x, y, w, h = cv2.boundingRect(approx)
+#         cropped_rectangle = org_image[y:y+h, x:x+w]
+#         if cropped_rectangle.shape[0] * cropped_rectangle.shape[1] < default_rect_space:
+#             continue
+#         cropped_rectangles.append(cropped_rectangle)
+
+cnts = cv2.findContours(opening, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+area_treshold = 4000
+for c in cnts:
+    if cv2.contourArea(c) > area_treshold :
+        x,y,w,h = cv2.boundingRect(c)
         cropped_rectangle = org_image[y:y+h, x:x+w]
         if cropped_rectangle.shape[0] * cropped_rectangle.shape[1] < default_rect_space:
             continue
+        cv2.imwrite(str(c.shape)+".png",cropped_rectangle)
         cropped_rectangles.append(cropped_rectangle)
-
 
 class MyPickle:
     def __init__(self, filename):
