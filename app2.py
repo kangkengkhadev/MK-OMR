@@ -27,11 +27,11 @@ opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=4)
 cropped_rectangles = []
 
 # tansform for omr
-img_for_detect = cv2.imread(name, cv2.IMREAD_GRAYSCALE)
-img_for_detect_gray = cv2.resize(img_for_detect, (1000, 1250), interpolation = cv2.INTER_LINEAR)
-(thresh, im_bw) = cv2.threshold(img_for_detect_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-thresh = 0
-img_for_detect = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
+# img_for_detect = cv2.imread(name, cv2.IMREAD_GRAYSCALE)
+# img_for_detect_gray = cv2.resize(img_for_detect, (1000, 1250), interpolation = cv2.INTER_LINEAR)
+# (thresh, im_bw) = cv2.threshold(img_for_detect_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+# thresh = 0
+# img_for_detect = cv2.threshold(img_for_detect_gray, thresh, 255, cv2.THRESH_BINARY)[1]
 sens = 40
 
 # # find rectangles

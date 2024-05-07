@@ -7,11 +7,10 @@ import numpy as np
 
 #define 
 circle_width, circle_height = 15,15
-size = (1000, 250) # (1000, 250) or (1000, 1250)
+size = (1000, 1250) # (1000, 250) or (1000, 1250)
 position_path = './pickle_label/'
-image_name = "mock_images/rectangle_2.png"
-startname = "rect2_"
-
+image_name = "mock_images/rectangle_1.png"
+startname = "rect1_"
 
 global img
 img = cv2.imread(image_name, 0)
@@ -35,6 +34,9 @@ def mouseClick(events, x, y, flags, params):
     global img 
     if events == cv2.EVENT_LBUTTONDOWN:
         if y > 60 and y < 120 and x > 90 and x < 250:   
+            for i in range(60):
+                if len(posList) > 0:
+                    posList.pop()
             posList.pop()
             img = cv2.imread(image_name, 0)
             img = cv2.resize(img, size, interpolation = cv2.INTER_LINEAR)
@@ -46,16 +48,16 @@ def mouseClick(events, x, y, flags, params):
                            thickness=1, offset=20, colorR=(0,200,0))
             cv2.putText(img, 'Undo',(140,120),cv2.FONT_HERSHEY_PLAIN, 2,(0),3)
         else: 
-            # temp = []
-            # with open(position_path+pickle_name, 'rb') as f:
-            #     temp = pickle.load(f)
-            # temp = temp[-60:]
-            # delta_x = x - temp[0][0][0];
-            # delta_y = y - temp[0][0][1];
-            # for e in temp:
-            #     cord, params = e
-            #     posList.append([(cord[0] + delta_x, cord[1] + delta_y), params])
-            posList.append([(x, y),params])
+            temp = []
+            with open(position_path+pickle_name, 'rb') as f:
+                temp = pickle.load(f)
+            temp = temp[-60:]
+            delta_x = x - temp[0][0][0];
+            delta_y = y - temp[0][0][1];
+            for i in range(60):
+                cord = temp[i][0]
+                posList.append([(cord[0] + delta_x, cord[1] + delta_y), params + i])
+            # posList.append([(x, y),params])
         with open(position_path+pickle_name, 'wb') as f:
             pickle.dump(posList, f)
 
@@ -63,7 +65,7 @@ def mouseClick(events, x, y, flags, params):
 while True:
     idx = 0
     for pos in posList:
-                cv2.rectangle(img, pos[0], (pos[0][0] + circle_width, pos[0][1] + circle_height), (0, 0, 0), 2)
+                cv2.rectangle(img, pos[0], (pos[0][0] + circle_width, pos[0][1] + circle_height), (0, 255, 0), 2)
                 idx += 1
     cvzone.putTextRect(img, f'Idx:{idx}', (100, 50), scale=2,
                            thickness=1, offset=20, colorR=(0,200,0))
