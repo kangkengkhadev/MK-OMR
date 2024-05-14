@@ -39,6 +39,12 @@ class ScorePaper:
             index -= 250
             self.answer[50 + index // 60] += str(index % 10)
 
+    def get_answer(self):
+        return self.answer
+    
+    def get_id(self):
+        return "".join(self.id)
+
     def name_section_indexing(self, index):
         if 0 <= index <= 19:
             self.set_seat_no(index)
@@ -66,8 +72,13 @@ def getPickleIntances() -> tuple[MyPickle, MyPickle]:
 
     return (name_section_instance, answer_section_instance)
 
+def accept(expected: int, actual: int) -> bool:
+    return abs(expected - actual) / expected * 100 < 5
+
 def cropImage(test_case: str) -> list[MatLike]:
-    minimum_rect_size = 200000
+    expected_height_1 = 224
+    expected_height_2 = 981
+    min_area = 200000
 
     og_image = cv2.imread(test_case)
     og_image = cv2.resize(og_image, (1000, 1250), interpolation=cv2.INTER_LINEAR)
@@ -84,9 +95,10 @@ def cropImage(test_case: str) -> list[MatLike]:
         if cv2.contourArea(contour) > 4000:
             x, y, w, h = cv2.boundingRect(contour)
             cropped_rectangle = cv2.cvtColor(og_image[y : y + h, x : x + w], cv2.COLOR_GRAY2BGR)
-            if cropped_rectangle.shape[0] * cropped_rectangle.shape[1] < minimum_rect_size:
-                continue
-            cropped_rectangles.append(cropped_rectangle)
+            height = cropped_rectangle.shape[0]
+            area = cropped_rectangle.shape[0] * cropped_rectangle.shape[1]
+            if (accept(expected_height_1, height) or accept(expected_height_2, height)) and area > min_area:
+                cropped_rectangles.append(cropped_rectangle)
     cropped_rectangles.sort(key=lambda x: x.shape[0] * x.shape[1])
     cv2.imwrite("mock_images/rectangle_1.png", cropped_rectangles[1])
     cv2.imwrite("mock_images/rectangle_2.png", cropped_rectangles[0])
@@ -117,7 +129,7 @@ def getScorePaper(test_case: str) -> ScorePaper:
     name_section_instance, answer_section_instance = getPickleIntances()
     score_paper = ScorePaper()
 
-    white_max_percentage = 20
+    white_max_percentage = 40
 
     for pos in name_section_instance.get_file():
         x, y = pos[0]
@@ -128,7 +140,9 @@ def getScorePaper(test_case: str) -> ScorePaper:
         percentage = white_pixel / (white_pixel + black_pixel) * 100
         if percentage < white_max_percentage:
             score_paper.name_section_indexing(index)
-        cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 255, 0), 2)
+            cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 255, 0), 2)
+        else:
+            cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 0, 255), 2)
 
     for pos in answer_section_instance.get_file():
         x, y = pos[0]
@@ -139,6 +153,8 @@ def getScorePaper(test_case: str) -> ScorePaper:
         percentage = white_pixel / (white_pixel + black_pixel) * 100
         if percentage < white_max_percentage:
             score_paper.answer_section_indexing(index)
-        cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 255, 0), 2)
+            cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 255, 0), 2)
+        else:
+            cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 0, 255), 2)
 
     return score_paper
