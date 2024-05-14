@@ -34,9 +34,9 @@ def mouseClick(events, x, y, flags, params):
     global img 
     if events == cv2.EVENT_LBUTTONDOWN:
         if y > 60 and y < 120 and x > 90 and x < 250:   
-            for i in range(60):
-                if len(posList) > 0:
-                    posList.pop()
+            # for i in range(60):
+            #     if len(posList) > 0:
+            #         posList.pop()
             posList.pop()
             img = cv2.imread(image_name, 0)
             img = cv2.resize(img, size, interpolation = cv2.INTER_LINEAR)
@@ -54,10 +54,10 @@ def mouseClick(events, x, y, flags, params):
             temp = temp[-60:]
             delta_x = x - temp[0][0][0];
             delta_y = y - temp[0][0][1];
-            for i in range(60):
-                cord = temp[i][0]
-                posList.append([(cord[0] + delta_x, cord[1] + delta_y), params + i])
-            # posList.append([(x, y),params])
+            # for i in range(60):
+            #     cord = temp[i][0]
+            #     posList.append([(cord[0] + delta_x, cord[1] + delta_y), params + i])
+            posList.append([(x, y),params])
         with open(position_path+pickle_name, 'wb') as f:
             pickle.dump(posList, f)
 

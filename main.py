@@ -13,7 +13,7 @@ def write_score(answer_sheet: util.ScorePaper, test_case: str):
         elif 51 <= i + 1 <= 60:
             if answer_sheet.get_answer()[i] == score_paper.get_answer()[i]:
                 score += 2.5
-    return (score_paper.get_id(), score)
+    return (score_paper.get_id(), score, score_paper.get_cancel())
 
 if __name__ == '__main__':
     answer_sheet: util.ScorePaper = util.getScorePaper("testcases/answer_sheet.png")
@@ -21,6 +21,6 @@ if __name__ == '__main__':
     test_cases = list(filter(lambda x: x.startswith("testcase_"), test_cases))
     with open("score.csv", "w") as f:
         for testcase in test_cases:
-            (id, score) = write_score(answer_sheet, f"testcases/{testcase}")
-            print(f"{id}: {score}")
-            f.write(f"{id},{score}\n")
+            (id, score, cancled) = write_score(answer_sheet, f"testcases/{testcase}")
+            print(f"{id}: {score} {'(cancled)' if cancled else ''}")
+            f.write(f"{id},{score}{',CANCLED' if cancled else ''}\n")

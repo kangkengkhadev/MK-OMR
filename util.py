@@ -45,6 +45,9 @@ class ScorePaper:
     def get_id(self):
         return "".join(self.id)
 
+    def get_cancel(self):
+        return self.cancle
+
     def name_section_indexing(self, index):
         if 0 <= index <= 19:
             self.set_seat_no(index)
