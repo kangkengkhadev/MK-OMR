@@ -1,0 +1,61 @@
+import util
+import os
+import argparse
+import pickle
+import cv2
+
+def write_score(answer_sheet: util.ScorePaper, test_case: str):
+    score_paper: util.ScorePaper = util.getScorePaper(test_case)
+    n = len(answer_sheet.get_answer())
+    score = 0
+
+    for i in range(n):
+        if 1 <= i + 1 <= 50:
+            if answer_sheet.get_answer()[i] == score_paper.get_answer()[i]:
+                score += 1.5
+        elif 51 <= i + 1 <= 60:
+            if answer_sheet.get_answer()[i] == score_paper.get_answer()[i]:
+                score += 2.5
+    return (score_paper.get_id(), score, score_paper.get_cancel())
+
+def run():
+    answer_sheet: util.ScorePaper = util.getScorePaper("testcases/answer_sheet.png")
+    test_cases = os.listdir("testcases")
+    test_cases = list(filter(lambda x: x.startswith("testcase_"), test_cases))
+    with open("score.csv", "w") as f:
+        for testcase in test_cases:
+            (id, score, cancled) = write_score(answer_sheet, f"testcases/{testcase}")
+            print(f"{id}: {score} {'(cancled)' if cancled else ''}")
+            f.write(f"{id},{score}{',CANCLED' if cancled else ''}\n")
+
+def test(file_name: str):
+    util.checkDetectedCircles(file_name)
+    paper: util.ScorePaper = util.getScorePaper(file_name)
+    paper.print()
+
+def generate_testcases():
+    img = cv2.imread("clear.png", cv2.IMREAD_GRAYSCALE)
+    img = cv2.resize(img, (992, 1403), interpolation=cv2.INTER_LINEAR)
+    with open("./pickle_label/rect1_1250_1000_15_15", "rb") as f:
+        posList = pickle.load(f)
+    x_offset = 0
+    y_offset = 260
+    for [(x, y), _] in posList:
+        cv2.rectangle(img, (x+x_offset, y+y_offset), (x+x_offset + 15, y+y_offset + 15), (0, 0, 0), 2)
+    cv2.imshow("image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("args", type=str, nargs="*")
+    cmd = parser.parse_args().args[0]
+    if (cmd == "run"):
+        run()
+    elif (cmd == "test"):
+        file_name = parser.parse_args().args[1]
+        test(file_name)
+    elif (cmd == "generate"):
+        generate_testcases()
+    else:
+        print("Invalid command")

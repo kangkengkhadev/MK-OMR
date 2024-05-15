@@ -20,7 +20,11 @@ class ScorePaper:
         self.seat_no = ["X", "X"]
         self.id = ["X", "X", "X", "X", "X", "X", "X", "X"]
         self.cancle = False
-        self.answer = [""] * 60
+        self.answer = []
+        for i in range(0,50):
+            self.answer.append("X")
+        for i in range(50,60):
+            self.answer.append("XXXXXX")
 
     def set_seat_no(self, index):
         self.seat_no[index // 10] = str(index % 10)
@@ -34,10 +38,24 @@ class ScorePaper:
 
     def set_answer(self, index):
         if 0 <= index <= 249:
-            self.answer[index // 5] += str(index % 5 + 1)
+            if self.answer[index // 5] == "ERROR":
+                return
+            
+            if self.answer[index // 5] != "X":
+                self.answer[index // 5] = "ERROR"
+            else:
+                self.answer[index // 5] = str(index % 5 + 1)
         elif 250 <= index <= 849:
             index -= 250
-            self.answer[50 + index // 60] += str(index % 10)
+            if self.answer[50 + index // 60] == "ERROR":
+                return
+
+            if self.answer[50 + index // 60][(index // 10) % 6] != "X":
+                self.answer[50 + index // 60] = "ERROR"
+            else:
+                lst = list(self.answer[50 + index // 60])
+                lst[(index // 10) % 6] = str(index % 10)
+                self.answer[50 + index // 60] = "".join(lst)
 
     def get_answer(self):
         return self.answer
@@ -127,12 +145,41 @@ def convertToBinary(test_case: str) -> tuple[MatLike, MatLike]:
 
     return (name_section_bin, answer_section_bin)
 
+def checkDetectedCircles(test_case: str):
+    name_section_bin, answer_section_bin = convertToBinary(test_case)
+    name_section_instance, answer_section_instance = getPickleIntances()
+
+    white_max_percentage = 40
+
+    for pos in name_section_instance.get_file():
+        x, y = pos[0]
+        cropped_section = name_section_bin[y : y + name_section_instance.rect_range, x : x + name_section_instance.rect_range]
+        white_pixel = np.sum(cropped_section == 255)
+        black_pixel = np.sum(cropped_section == 0)
+        percentage = white_pixel / (white_pixel + black_pixel) * 100
+        if percentage < white_max_percentage:
+            cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 255, 0), 2)
+
+    for pos in answer_section_instance.get_file():
+        x, y = pos[0]
+        cropped_section = answer_section_bin[y : y + answer_section_instance.rect_range, x : x + answer_section_instance.rect_range]
+        white_pixel = np.sum(cropped_section == 255)
+        black_pixel = np.sum(cropped_section == 0)
+        percentage = white_pixel / (white_pixel + black_pixel) * 100
+        if percentage < white_max_percentage:
+            cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 255, 0), 2)
+
+    cv2.imshow("Name Section", name_section_bin)
+    cv2.imshow("Answer Section", answer_section_bin)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 def getScorePaper(test_case: str) -> ScorePaper:
     name_section_bin, answer_section_bin = convertToBinary(test_case)
     name_section_instance, answer_section_instance = getPickleIntances()
     score_paper = ScorePaper()
 
-    white_max_percentage = 40
+    white_max_percentage = 30
 
     for pos in name_section_instance.get_file():
         x, y = pos[0]
@@ -143,9 +190,6 @@ def getScorePaper(test_case: str) -> ScorePaper:
         percentage = white_pixel / (white_pixel + black_pixel) * 100
         if percentage < white_max_percentage:
             score_paper.name_section_indexing(index)
-            cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 255, 0), 2)
-        else:
-            cv2.rectangle(name_section_bin, (x, y), (x + name_section_instance.rect_range, y + name_section_instance.rect_range), (0, 0, 255), 2)
 
     for pos in answer_section_instance.get_file():
         x, y = pos[0]
@@ -156,8 +200,5 @@ def getScorePaper(test_case: str) -> ScorePaper:
         percentage = white_pixel / (white_pixel + black_pixel) * 100
         if percentage < white_max_percentage:
             score_paper.answer_section_indexing(index)
-            cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 255, 0), 2)
-        else:
-            cv2.rectangle(answer_section_bin, (x, y), (x + answer_section_instance.rect_range, y + answer_section_instance.rect_range), (0, 0, 255), 2)
 
     return score_paper
